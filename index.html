@@ -1,0 +1,61 @@
+/**
+ * AVENTA - Обробник лідів для створення сайту ресторану
+ */
+function doPost(e) {
+  try {
+    var sheetName = "Aventa_Restaurant_Leads";
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName(sheetName);
+
+    // Суворі колонки таблиці згідно з ТЗ
+    var headers = [
+      'Date', 
+      'Name', 
+      'Phone', 
+      'UTM Source', 
+      'UTM Medium', 
+      'UTM Campaign', 
+      'UTM Content', 
+      'UTM Term'
+    ];
+
+    // Якщо вкладка відсутня — створюємо та оформлюємо шапку
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+      sheet.appendRow(headers);
+      
+      // Стилізація шапки (благородний зелений стиль)
+      var headerRange = sheet.getRange(1, 1, 1, headers.length);
+      headerRange.setBackground("#1E3E2B");
+      headerRange.setFontColor("#FFFFFF");
+      headerRange.setFontWeight("bold");
+      headerRange.setFontSize(11);
+      sheet.setFrozenRows(1);
+    }
+
+    // Парсинг вхідних даних JSON
+    var data = JSON.parse(e.postData.contents);
+
+    var row = [
+      data.date || new Date().toISOString(),
+      data.name || '',
+      data.phone || '',
+      data.utm_source || '',
+      data.utm_medium || '',
+      data.utm_campaign || '',
+      data.utm_content || '',
+      data.utm_term || ''
+    ];
+
+    sheet.appendRow(row);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ 'result': 'success', 'row': sheet.getLastRow() }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ 'result': 'error', 'message': err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
